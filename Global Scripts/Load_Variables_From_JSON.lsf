@@ -1,0 +1,18 @@
+##This file reads the data contained in a specific file (in case we wish to load a different data set later)#
+##uncomment these lines to load a specific file
+addpath("E:\Vidar Flodgren\Scripts");
+Lumerical_Functions;
+# =============================================== ##
+DIR = 'DataExport_ALDT_NWSep\';
+LISTFILE = 'SimList.txt';
+CURRSIMFILE = 'Simnumber.txt';
+SIMNUM = 2;
+SETTINGSFILE = splitstring(read(DIR+LISTFILE),endl);
+#=============================================== ##
+
+JSON_OUT = jsonread(DIR+SETTINGSFILE{SIMNUM}+".json");
+SG_struct = JSON_OUT.SG_struct; 
+
+set_uservar(SG_struct,SG_struct.SG_name{1});
+
+#You need to run Transfer_Struct_to_Analysis after this

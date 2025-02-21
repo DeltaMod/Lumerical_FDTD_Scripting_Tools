@@ -1,0 +1,18 @@
+addpath("E:\Vidar Flodgren\Scripts");
+Lumerical_Functions;
+##WARNING!!! OPEN AND ACCEPT FDTD_GEN AND SCENECONSTRUCTOR SCRIPTS BEFORE RUNNING
+##NOT DOING THIS WILL CRASH THE SOFTWARE
+DIR = "DataExport/";
+#Give the names of all structure groups that have variables you want to transfer
+#Note that nested SG's must be prefaced by the top layer SG (or the entire tree)
+
+#Note, I put all variables I want to change in the SG_name structure group, and then have no unique variables in the target group
+SG_name = "SceneConstructor";
+VS_name = "Variable Storage";
+SG_names = {SG_name,SG_name+"::"+VS_name}; 
+
+#Generate your SG_structure
+SG_struct = multi_collect_uservar(SG_names);
+
+#Save File to JSON
+jsonsave(DIR+"filename", SG_struct);

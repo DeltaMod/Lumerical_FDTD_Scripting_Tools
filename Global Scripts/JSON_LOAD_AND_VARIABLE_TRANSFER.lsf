@@ -1,0 +1,41 @@
+##This file reads the data contained in a specific file (in case we wish to load a different data set later)#
+##uncomment these lines to load a specific file
+addpath("E:\Vidar Flodgren\Scripts");
+Lumerical_Functions;
+# =============================================== ##
+#DIR = 'DataExport_DirSep\';
+#LISTFILE = 'SimList.txt';
+#CURRSIMFILE = 'Simnumber.txt';
+#SIMNUM = 17;
+#SETTINGSFILE = splitstring(read(DIR+LISTFILE),endl);
+#=============================================== ##
+
+JSON_OUT = jsonread(DIR+SETTINGSFILE{SIMNUM}+".json");
+SG_struct = JSON_OUT.SG_struct; 
+
+set_uservar(SG_struct,SG_struct.SG_name{1});
+
+#You need to run Transfer_Struct_to_Analysis after this
+
+
+Lumerical_Functions;
+##WARNING!!! OPEN AND ACCEPT FDTD_GEN AND SCENECONSTRUCTOR SCRIPTS BEFORE RUNNING
+##NOT DOING THIS WILL CRASH THE SOFTWARE
+
+#Give the names of all structure groups that have variables you want to transfer
+#Note that nested SG's must be prefaced by the top layer SG (or the entire tree)
+SG_name = "SceneConstructor";
+VS_name = "Variable Storage";
+SG_names = {SG_name,SG_name+"::"+VS_name}; 
+
+#Give the name of the target group
+Target  = "FDTD_Gen";
+
+#Generate your SG_structure
+SG_struct = multi_collect_uservar(SG_names);
+
+#Collect target variables for reference
+Target_struct = collect_uservar(Target);
+
+#Transfer all variables using the SG_struct and the Target_struct.
+transfer_uservar(SG_struct,Target_struct);

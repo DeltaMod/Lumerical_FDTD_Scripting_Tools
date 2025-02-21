@@ -1,0 +1,77 @@
+addpath("E:\Vidar Flodgren\Scripts");
+Lumerical_Functions;
+#Use this script to make iterative simulation JSONfiles that can be loaded into each successive simulation.
+
+#First we try to clear all the current .txt files found in the folder. This assumes that SimList already exists!
+DIR = 'DataExport/';
+LISTFILE = 'SimList.txt';
+
+
+try
+{
+	SETTINGSFILE = splitstring(read(DIR+LISTFILE),endl);
+}
+
+for(i = 1:length(SETTINGSFILE))
+{
+    try
+    {
+	   rm(DIR+SETTINGSFILE{i}+'.txt');
+    }
+}
+
+#Load the current variables so you can modify the relevant fields:
+
+SG_name = "SceneConstructor";
+VS_name = "Variable Storage";
+SG_names = {SG_name,SG_name+"::"+VS_name}; 
+SG_struct = multi_collect_uservar(SG_names);
+
+## The properties we will vary - NOTE, these MUST be named exactly as they are in the structure group when referenced##
+#Thickness_ALD = ALD Thickness. 
+
+ALD_T = linspace(50e-9,1000e-9,39); #Thickness_ALD
+
+#Set sim index to 1
+na = 1;
+
+#Calculate the total length N (this will be linspace(var1)*linspace(var2)*...*linspace(varN))
+N = length(ALD_T);
+
+#Get a prefix with the same length as the parameters we are varying.
+prefix = linspace(1,N,N);
+
+#Make the filename a cell matrix with length N.
+Filename = cell(N); 
+
+#You have to write this code custom for every single new simulation, unfortuately!
+
+for(j = 1:length(ALD_T))
+{
+    
+    FN = num2str(prefix(na))+'-ALD_Thickness_'+num2str(ALD_T(j)*1e+9)+'_nm';
+    FN = replacestring(FN,'.','_');
+    Filename{na} = FN;
+    
+    SG_struct = replace_named_uservar(SG_struct,"ALD_Thickness",ALD_T(j));
+    
+    jsonsave(DIR+Filename{na},SG_struct);      
+    na = na+1;  
+}
+         
+
+	
+
+
+
+
+#We remove Simlist so that we can create Simlist anew without appending text.
+try
+{
+	rm('DataExport\SimList.txt');
+}
+    
+Filelist = Filename{1};
+for(n = 2:length(Filename)){    
+    Filelist = Filelist + endl + Filename{n};}
+write('DataExport\SimList.txt',Filelist);

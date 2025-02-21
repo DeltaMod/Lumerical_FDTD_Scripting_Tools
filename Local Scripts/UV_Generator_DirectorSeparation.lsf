@@ -1,0 +1,120 @@
+addpath("E:\Vidar Flodgren\Scripts");
+Lumerical_Functions;
+#Use this script to make iterative simulation JSONfiles that can be loaded into each successive simulation.
+
+#First we try to clear all the current .txt files found in the folder. This assumes that SimList already exists!
+DIR = 'DataExport_ALDT_NWSep/';
+LISTFILE = 'SimList.txt';
+
+try
+{
+    SETTINGSFILE = splitstring(read(DIR+LISTFILE),endl);
+    for(i = 1:length(SETTINGSFILE))
+    {
+        try
+        {
+	       rm(DIR+SETTINGSFILE{i}+'.txt');
+        }   
+    }
+}
+
+
+
+
+#Load the current variables so you can modify the relevant fields:
+
+SG_name = "SceneConstructor";
+VS_name = "Variable Storage";
+SG_names = {SG_name,SG_name+"::"+VS_name}; 
+SG_struct = multi_collect_uservar(SG_names);
+
+## The properties we will vary - NOTE, these MUST be named exactly as they are in the structure group when referenced##
+#NW_Rot = Nanowire rotation from index 1 to index 2. 
+N_Dir = [0,4];
+NW_y1 = 1.5;
+NW_y2 = linspace(-2.5,-2.5+-0.5*15,16);
+ALD_T = linspace(0,200,20);
+
+#Set sim index to 1
+na = 1;
+
+#Calculate the total length N (this will be linspace(var1)*linspace(var2)*...*linspace(varN))
+N = length(N_Dir)*length(NW_y2)*length(ALD_T);
+
+#Get a prefix with the same length as the parameters we are varying.
+prefix = linspace(1,N,N);
+
+#Make the filename a cell matrix with length N.
+Filename = cell(N); 
+
+#You have to write this code custom for every single new simulation, unfortuately!
+
+FN = num2str(prefix(1))+"-NoAntenna";
+FN = replacestring(FN,'.','_');
+Filename{1} = FN;
+SG_struct = replace_named_uservar(SG_struct,"isreflector",0);
+SG_struct = replace_named_uservar(SG_struct,"N_Directors",0);
+jsonsave(DIR+Filename{1},SG_struct); 
+
+FN = num2str(prefix(2))+"-Reflector_Only";
+FN = replacestring(FN,'.','_');
+Filename{2} = FN;
+SG_struct = replace_named_uservar(SG_struct,"isreflector",1);
+SG_struct = replace_named_uservar(SG_struct,"director_sep",150*1e-9);
+SG_struct = replace_named_uservar(SG_struct,"N_Directors",0);
+na = 3;
+jsonsave(DIR+Filename{2},SG_struct);            
+for(i = 1:length(N_Dir))
+{   
+    if(N_Dir(i)==0)
+    {preprefix = "-NoAntenna_";
+    isreflector=0;
+    ndir = N_Dir(i);}
+    if(N_Dir(i)!=0)    
+    {preprefix = "-Antenna_";
+    isreflector=1;
+    ndir = N_Dir(i);}
+    
+    for(j = 1:length(ALD_T))   
+    {       
+        for(k=1:length(NW_y2)
+        {
+            NW_y = [NW_y1,NW_y2(k)];
+            NW_Separation  = abs(%NW_y%(1) - %NW_y%(2)) - 3;
+            aldt = ALD_T(j)*1e-9
+            FN = num2str(prefix(na))+preprefix+'-ALD_T_'+num2str(ALD_T(j))+'_nm'+num2str(NW_Separation)+'_um';
+            FN = replacestring(FN,'.','_');
+            Filename{na} = FN;
+            
+        
+            SG_struct = replace_named_uservar(SG_struct,"isreflector",isreflector);
+            SG_struct = replace_named_uservar(SG_struct,"N_Directors",N_Dir(i));
+            SG_struct = replace_named_uservar(SG_struct,"NW_y",NW_y);
+            SG_struct = replace_named_uservar(SG_struct,"Thickness_ALD",aldt);
+            SG_struct = replace_named_uservar(SG_struct,"NW_Separation",NW_Separation);
+            jsonsave(DIR+Filename{na},SG_struct);      
+            na = na+1;  
+        }
+  }
+}            
+
+	
+
+
+#We remove Simnumber.txt and add another if we need it
+try
+{
+	rm(DIR+'\Simnumber.txt');
+}
+write(DIR+"\Simnumber.txt","1");
+
+#We remove Simlist so that we can create Simlist anew without appending text.
+try
+{
+	rm(DIR+'\SimList.txt');
+}
+    
+Filelist = Filename{1};
+for(n = 2:length(Filename)){    
+    Filelist = Filelist + endl + Filename{n};}
+write(DIR+LISTFILE,Filelist);

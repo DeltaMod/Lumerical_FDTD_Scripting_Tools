@@ -1,0 +1,3 @@
+?load("Communication_Replication_BASE_Corrupted.fsp");
+?status = layoutmode;
+switchtolayout;

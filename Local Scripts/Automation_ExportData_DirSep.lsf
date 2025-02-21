@@ -1,0 +1,88 @@
+# get raw matrix data from the simulation
+#use ?getdata(monitorname) to extract all data that you can extract
+## Uncomment code block underneath to save 3D monitor : (Ctrl+r)
+## =============================================================== ##
+#mname="FDTD_Gen::3D Monitor::ANW_3d_Monitor";       # monitor name
+##Available Data Fields: x  y  z  surface_normal  dimension  f  Ex  Ey  Ez Hx  Hy  Hz  
+#x        	= getdata(mname,"x");     # position vectors associated with Ex fields
+#y        	= getdata(mname,"y");     # position vectors associated with Ey fields
+#z        	= getdata(mname,"z");     # position vectors associated with Ez fields
+#f   		= getdata(mname,"f");     # I don't actually know what this is
+#Ex       	= getdata(mname,"Ex");    # Ex field at monitor
+#Ey      	= getdata(mname,"Ey");    # Ey field at monitor
+#Ez       	= getdata(mname,"Ez");    # Ez field at monitor
+#Hx       	= getdata(mname,"Hx");    # x axis magnetic field
+#Hy       	= getdata(mname,"Hy");    # y axis magnetic field
+#Hz       	= getdata(mname,"Hz");    # z axis magnetic field
+#Px       	= getdata(mname,"Px");    # x axis power
+#Py       	= getdata(mname,"Py");    # y axis power
+#Pz       	= getdata(mname,"Pz");    # z axis power
+#surfnorm  = getdata(mname,"surface_normal"); #Surface Normal 
+#dim 	= getdata(mname,"dimension"); #Dimension
+#filename="DataExport/"+OUTPUT+'_3Dm'; # set filename. i could be a loop counter variable.
+#matlabsave(filename, x,y,z,Ex,Ey,Ez,Px,Py,Pz,f,Hx,Hy,Hz,surfnorm,dim);  
+## =============================================================== ##
+
+## TEST FOLDERS
+#DATAFOLDER   = 'DataExport/';
+#SIMFOLDER    = 'ALD_Thickness/';
+#DIR          = DATAFOLDER+SIMFOLDER;
+
+## TEST FOLDERS
+
+##IMPORTANT!!! matsave only accepts ONE of each TYPE of e.g. pabs_total. 
+#So you need to export monitors separately
+#Get data from pabs and ptrans monitor
+#Detector NW trans pabs names;
+
+SaveData = struct;
+
+NW_det_tmon = "FDTD_Gen::Trans-Pabs-Mon_Absorber::abnw_ptrans_1";
+NW_det_pmon = "FDTD_Gen::Trans-Pabs-Mon_Absorber::abnw_pabs_adv_abs_1";
+
+
+#Emitter NW trans pabs names 
+NW_em_tmon = "FDTD_Gen::Trans-Pabs-Mon_Emitter::abnw_ptrans_Em_1";
+NW_em_pmon = "FDTD_Gen::Trans-Pabs-Mon_Emitter::abnw_pabs_adv_Em_1";
+
+#DFT Names
+#DFT_XYname = "FDTD_Gen::DFT-XY_director";
+#DFT_YZname = "FDTD_Gen::DFT-YZ_director";
+
+#DFT_XY = getresult(DFT_XYname,'Ez');
+#DFT_YZ = getresult(DFT_YZname,'Ex');
+#SaveData.Fields = struct;
+#SaveData.Fields.XY = DFT_XY;
+#SaveData.Fields.YZ = DFT_YZ;
+
+
+#DirectivityData
+Scatter3dname = "FDTD_Gen::3d_Scatter";
+#Scatter2dname = "FDTD_Gen::3d_Scatter";
+
+SaveData.directivity = struct;
+SaveData.directivity.Scatter3d = getresult(Scatter3dname,"farfield");
+#SaveData.directivity.Scatter2d = getresult(Scatter2dname,"farfield");
+
+#mname = NW_em_tmon;
+#em_T  = getresult(mname,'T');
+
+#Absorption_data
+mname = NW_det_pmon;
+#det_Pabs = getresult(mname,'Pabs');
+det_Pabs_tot = getresult(mname,'Pabs_total');
+
+mname = NW_em_pmon;
+
+#em_Pabs = getresult(mname,'Pabs');
+em_Pabs_tot = getresult(mname,'Pabs_total');
+
+SaveData.emitter = struct;
+SaveData.emitter.Pabs_total = em_Pabs_tot;
+
+SaveData.receiver            = struct;
+SaveData.receiver.Pabs_total = det_Pabs_tot;
+
+
+filename=DIR+OUTPUT;
+matlabsave(filename, SaveData); 
