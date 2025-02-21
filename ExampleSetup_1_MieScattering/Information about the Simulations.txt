@@ -1,0 +1,20 @@
+DataExport: Huge range of simulations values:
+ DX = [10nm, 510nm]; DY = [10nm, 510nm]; DZ = [40nm ,200nm] 
+ purpose is to find the optimal scattering/absorption crossection
+This simulation found that the maximum can be found within:
+Dx_50_nm270_nm80_nm_field_Enhancement.mat
+Where Dx=50, Dy=270nm, Dz=80nm
+Note that the image display code {change later} displays the X value being closer to 80, but the actual value it shows IS 50 nm
+
+DataExport2: Narrower range of simulation values. Since maximum was 50/270/80, our new range will instead be:
+
+DX = [35nm, 65nm]; DY = [245nm, 285nm]; DZ = [65nm ,95nm] 
+Which in this case, represents a [16,16,16] space
+Here, the maximum values was found to be:
+[55 nm, 266 nm, 81 nm]
+Which closely corresponds
+
+DataExport3: Mid range of simulation values. Since DataExport 2 ranges produces surising results our new range will instead be:
+DX = [10nm, 100nm]; 10 steps DY = [200nm, 350nm]; 16 steps DZ = [77m ,85nm] (5 steps) 
+
+Note that the lumerical script location needs to be updated in each file.

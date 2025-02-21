@@ -1,0 +1,49 @@
+addpath("..\..\Global Scripts");
+Lumerical_Functions;
+
+#Basic Concept of this Automation Pipeline:
+#Define Directories, Load simulation list, get current simulation number
+#Load Variables using Load_Variables_From_JSON and the current simulation
+#Run Variable_Transfer_Struct_to_Analysis to set FDTD_Gen properties correctly
+#Run simulation
+#Save monitor data
+#Load New Variables
+
+#Define directories, the list file, the current simulation file, and read the current simulation value.
+#system("IF exist DataExport\\TEST2 ( echo myDirName exists ) ELSE ( mkdir DataExport\\TEST2 && echo DataExport\\TEST created)");
+DATAFOLDER   = 'DataExport3/';
+SIMFOLDER    = '';
+DIR          = DATAFOLDER+SIMFOLDER;
+LISTFILE     = 'SimList.txt';
+CURRSIMFILE  = 'Simnumber.txt';
+
+#Step 1: 
+#First, we read SimList.txt and Simnumber.txt to determine which simulation to run:
+SIMNUM = str2num(read(DIR+CURRSIMFILE));
+SETTINGSFILE = splitstring(read(DIR+LISTFILE),endl);
+
+for(n = SIMNUM:length(SETTINGSFILE))
+{
+    #Step 2:
+    #Load user variables from file and set these in the structure group, then update the analysis group
+    
+    Load_Variables_From_JSON;
+    
+    #we update the FDTD_Gen group to change the FDTD size and move any dipoles and monitors.
+    Variable_Transfer_Struct_to_Analysis;
+    
+    print("Running Simulation Number: " + num2str(SIMNUM));
+    #Then we run the simulation
+    run;
+    
+    #We give the output a name(same as the text folder)
+    OUTPUT = SETTINGSFILE{SIMNUM};
+    #After the simulation finishes, we run the data extractor:
+    Mie_Scattering_Automation;
+    
+    switchtolayout;
+    #We also need to update the simulation ID in simnumber.txt
+    SIMNUM = SIMNUM+1;
+    rm(DIR+CURRSIMFILE);
+    write(DIR+CURRSIMFILE,num2str(SIMNUM));
+}

@@ -1,0 +1,212 @@
+deleteall;
+
+## MESH ORDER NOTES ##
+
+
+x_span = %Dx%;
+y_span = %Dy%;
+z_span = %Dz%;
+x_r    = %x radius%;
+y_r    = %y radius%;
+z_r    = %z radius top%;
+
+# co-ordinates of the eight corners
+x=[-x_span/2+x_r,x_span/2-x_r];
+y=[-y_span/2+y_r,y_span/2-y_r];
+z=[-z_span/2+z_r,z_span/2-z_r];
+rot=[-90,90];
+
+# center rectangle + top piece
+addrect;
+ set("x",0);
+ set("y",0);
+ set("z",0);
+ set("x span",x_span-2*x_r);
+ set("y span",y_span-2*y_r);
+ set("z span",z_span);
+
+
+for(i=1:2) {
+  # side rectangles
+  addrect;
+   set("x",x(i));
+   set("y",0);
+   set("z",0);
+   set("x span",2*x_r);
+   set("y span",y_span-2*y_r);
+   set("z span",z_span-2*z_r);
+  addrect;
+   set("x",0);
+   set("y",y(i));
+   set("z",0);
+   set("x span",x_span-2*x_r);
+   set("y span",2*y_r);
+   set("z span",z_span-2*z_r);   
+  for(j=1:2) {
+    # top rounded edges
+    addcircle;
+    #along y direction, intersecting with x and z-curvature
+     set("z span",y_span-2*y_r);
+     set("radius",x_r);
+     set("make ellipsoid",1);
+     set("radius 2",z_r);
+     set("x",x(i));
+     set("y",0);
+     set("first axis","x");
+     set("rotation 1",rot(j));
+     set("z",z(j));
+     
+     #along x direction, intersecting with y and z curvature
+     addcircle;
+     set("x",0);
+     set("z span",x_span-2*x_r);
+     set("radius",z_r);
+     set("make ellipsoid",1);
+     set("radius 2",y_r);
+     set("y",y(i));
+     set("first axis","y");
+     set("rotation 1",rot(j));
+     set("z",z(j));
+    # side rounded edges intersecting with x and y curvature
+    addcircle;
+     set("z span",z_span-2*z_r);  
+     set("z",0);
+     set("radius",x_r);
+     set("make ellipsoid",1);
+     set("radius 2",y_r);
+     set("x",x(i));
+     set("y",y(j));
+    for(k=1:2) {
+      # rounded corners
+      addsphere;
+      set("z",z(k));
+      set("make ellipsoid",1);
+      set("radius",x_r);
+      set("radius 2",y_r);
+      set("radius 3",z_r);
+      set("x",x(i));
+      set("y",y(j));
+    }  
+  }
+}
+
+
+
+z_r    = %z radius bot%;
+x_span = %Dx%;
+y_span = %Dy%;
+z_span = %Dz%/2;
+
+
+# co-ordinates of the eight corners
+x=[-x_span/2+x_r,x_span/2-x_r];
+y=[-y_span/2+y_r,y_span/2-y_r];
+z=[z_span/2-z_r-z_span/2,-z_span/2+z_r-z_span/2];
+rot=[-90,90];
+
+# center rectangle + top piece
+addrect;
+ set("x",0);
+ set("y",0);
+ set("z",-z_span/2);
+ set("x span",x_span-2*x_r);
+ set("y span",y_span-2*y_r);
+ set("z span",z_span-2*z_r);
+
+for(i=1:2) {
+  # side rectangles
+  addrect;
+   set("x",x(i));
+   set("y",0);
+   set("z",-z_span/2);
+   set("x span",2*x_r);
+   set("y span",y_span-2*y_r);
+   set("z span",z_span-2*z_r);
+  addrect;
+   set("x",0);
+   set("y",y(i));
+   set("z",-z_span/2);
+   set("x span",x_span-2*x_r);
+   set("y span",2*y_r);
+   set("z span",z_span-2*z_r);   
+  for(j=1:2) {
+    # top rounded edges
+    addcircle;
+    #along y direction, intersecting with x and z-curvature
+     set("z span",y_span-2*y_r);
+     set("radius",x_r);
+     set("make ellipsoid",1);
+     set("radius 2",z_r);
+     set("x",x(i));
+     set("y",0);
+     set("first axis","x");
+     set("rotation 1",rot(j));
+     set("z",z(j));
+     
+     #along x direction, intersecting with y and z curvature
+     addcircle;
+     set("x",0);
+     set("z span",x_span-2*x_r);
+     set("radius",z_r);
+     set("make ellipsoid",1);
+     set("radius 2",y_r);
+     set("y",y(i));
+     set("first axis","y");
+     set("rotation 1",rot(j));
+     set("z",z(j));
+    # side rounded edges intersecting with x and y curvature
+    addcircle;
+     set("z span",z_span-2*z_r);  
+     set("z",-z_span/2);
+     set("radius",x_r);
+     set("make ellipsoid",1);
+     set("radius 2",y_r);
+     set("x",x(i));
+     set("y",y(j));
+    for(k=1:2) {
+      # rounded corners
+      addsphere;
+      set("z",z(k));
+      set("make ellipsoid",1);
+      set("radius",x_r);
+      set("radius 2",y_r);
+      set("radius 3",z_r);
+      set("x",x(i));
+      set("y",y(j));
+    }  
+  }
+}
+
+# material for group object
+selectall;
+set("material",%MAT_Au%);
+addstructuregroup;
+set("name","Director");
+selectpartial("rectangle");
+shiftselectpartial("circle");
+shiftselectpartial("sphere");
+addtogroup("Director");
+
+#Variable Storage and Transfer - Just for post-calculated param
+addstructuregroup;
+set('name','Variable Storage');
+
+miepad = %Mon_Pad%;
+fpad = %FDTD_padding% ;
+FDTD_xmin_auto = -(x_span/2 + 5*miepad + fpad );
+FDTD_xmax_auto = (x_span/2 + 5*miepad + fpad );
+FDTD_ymin_auto = -(y_span/2 + 5*miepad + fpad );
+FDTD_ymax_auto = (y_span/2 + 5*miepad + fpad );
+FDTD_zmin_auto = -(z_span/2 + 5*miepad + fpad );
+FDTD_zmax_auto = (z_span/2 + 5*miepad+ fpad );
+
+#FDTD_minmax param
+adduserprop('FDTD_xmin_auto',2,FDTD_xmin_auto);
+adduserprop('FDTD_xmax_auto',2,FDTD_xmax_auto);
+
+adduserprop('FDTD_ymin_auto',2,FDTD_ymin_auto);
+adduserprop('FDTD_ymax_auto',2,FDTD_ymax_auto);
+
+adduserprop('FDTD_zmin_auto',2,FDTD_zmin_auto);
+adduserprop('FDTD_zmax_auto',2,FDTD_zmax_auto);
+

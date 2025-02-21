@@ -1,0 +1,95 @@
+addpath("..\..\Global Scripts");
+Lumerical_Functions;
+#Use this script to make iterative simulation JSONfiles that can be loaded into each successive simulation.
+
+#First we try to clear all the current .txt files found in the folder. This assumes that SimList already exists!
+DIR = 'DataExport/';
+LISTFILE = 'SimList.txt';
+
+try
+{
+    SETTINGSFILE = splitstring(read(DIR+LISTFILE),endl);
+    for(i = 1:length(SETTINGSFILE))
+    {
+        try
+        {
+	       rm(DIR+SETTINGSFILE{i}+'.txt');
+        }
+    }
+}
+
+
+
+
+#Load the current variables so you can modify the relevant fields:
+
+SG_name = "SceneConstructor";
+VS_name = "Variable Storage";
+SG_names = {SG_name,SG_name+"::"+VS_name}; 
+SG_struct = multi_collect_uservar(SG_names);
+
+## The properties we will vary - NOTE, these MUST be named exactly as they are in the structure group when referenced##
+#NW_Rot = Nanowire rotation from index 1 to index 2. 
+Dx = linspace(10,10+20*25,26);
+Dy = linspace(10,10+20*25,26);
+Dz = linspace(40,200,5);
+
+#Set sim index to 1
+na = 1;
+
+#Calculate the total length N (this will be linspace(var1)*linspace(var2)*...*linspace(varN))
+N = length(Dx)*length(Dy)*length(Dz);
+
+#Get a prefix with the same length as the parameters we are varying.
+prefix = linspace(1,N,N);
+
+#Make the filename a cell matrix with length N.
+Filename = cell(N); 
+
+#You have to write this code custom for every single new simulation, unfortuately!
+
+for(i = 1:length(Dx))
+{   for(j = 1:length(Dy))   
+    {
+        for(k = 1:length(Dz))
+        {
+            FN = num2str(prefix(na))+'-Mie_Director-Dx_'+num2str(Dx(i))+'_nm'+num2str(Dy(j))+'_nm'+num2str(Dz(k))+'_nm';
+            FN = replacestring(FN,'.','_');
+            Filename{na} = FN;
+            
+        
+            SG_struct = replace_named_uservar(SG_struct,"Dx",Dx(i)*1e-9);
+            SG_struct = replace_named_uservar(SG_struct,"Dy",Dy(j)*1e-9);
+            SG_struct = replace_named_uservar(SG_struct,"Dz",Dz(k)*1e-9);
+            if(Dx(i)<60){SG_struct = replace_named_uservar(SG_struct,"x radius",Dx(i)/2*1e-9);}
+            if(Dy(j)<60){SG_struct = replace_named_uservar(SG_struct,"y radius",Dy(j)/2*1e-9);}
+            if(Dz(k)<60){SG_struct = replace_named_uservar(SG_struct,"z radius top",Dz(k)/3*1e-9);}
+            if(Dx(i)>=60){SG_struct = replace_named_uservar(SG_struct,"x radius",30e-9);}
+            if(Dy(j)>=60){SG_struct = replace_named_uservar(SG_struct,"y radius",30e-9);}
+            if(Dz(k)>=60){SG_struct = replace_named_uservar(SG_struct,"z radius top",20e-9);}
+            jsonsave(DIR+Filename{na},SG_struct);      
+            na = na+1;  
+    }
+  }
+}            
+
+	
+
+
+#We remove Simnumber.txt and add another if we need it
+try
+{
+	rm(DIR+'\Simnumber.txt');
+}
+write(DIR+"\Simnumber.txt","1");
+
+#We remove Simlist so that we can create Simlist anew without appending text.
+try
+{
+	rm(DIR+'\SimList.txt');
+}
+    
+Filelist = Filename{1};
+for(n = 2:length(Filename)){    
+    Filelist = Filelist + endl + Filename{n};}
+write(DIR+LISTFILE,Filelist);
