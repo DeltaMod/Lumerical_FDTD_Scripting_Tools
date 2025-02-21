@@ -5,6 +5,6 @@ authors:
   given-names: "Flodgren"
   orcid: "https://orcid.org/0009-0006-8024-0259"
 title: "Lumerical FDTD Scripting Tools"
-version: 1.0.0
-date-released: 2015-02-21
+version: 0.0.1
+date-released: 2025-02-21
 url: "https://github.com/DeltaMod/Lumerical_FDTD_Scripting_Tools"
